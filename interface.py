@@ -1,0 +1,175 @@
+"""
+    Written by Beyazit Yalcinkaya as a part of the
+    Automating Timed Automata Design Project conducted
+    by the METU Cyber-Physical Systems Research Group.
+"""
+
+import pyuppaal
+import sys
+
+"""
+Internal global variables.
+Current template is manipulated by the functions and when is finished it is added to the nta.
+"""
+_nta = None
+_current_template = None
+
+def initialize():
+    """
+    Initializes internal global variables.
+    This function must be called before any other function.
+    """
+    global _nta, _current_template
+    if not _nta:
+	    _nta = pyuppaal.NTA()
+    return
+
+
+def create_template(template_name, list_of_locations): # while proccessing input make initial location the first element
+    """
+    Creates a new template with given name and locations.
+
+    Args:
+        template_name: Name of the template.
+        list_of_locations: List of location in the template.
+    """
+    global _nta, _current_template
+    n = len(list_of_locations)
+    temp = [pyuppaal.Location(name=list_of_locations[i]) for i in range(0, n)]
+    _current_template = pyuppaal.Template(name=pyuppaal.Label("name", template_name), locations=temp, initlocation=temp[0])
+    _current_template.assign_ids()
+    return
+
+
+def add_current_template_to_nta():
+    """
+    Adds current_template the the nta object.
+    """
+    global _nta, _current_template
+    try:
+        assert _current_template != None
+        _nta.add_template(_current_template)
+        if _nta.system:
+            _nta.system += ", " + _current_template.name.value
+        else:
+            _nta.system = "system " + _current_template.name.value
+        _current_template = None
+    except AssertionError:
+        pass
+    return
+
+
+def add_invariant(location_name, clock_name, list_of_invariants):
+    """
+    Adds an invariant to current_template.
+
+    Args:
+        location_name: Location Name.
+        clock_name: Clock name.
+        list_of_invariants: List of condition-number pairs elements.
+    """
+    global _nta, _current_template
+    temp = _current_template.get_location_by_name(location_name)
+    invariant_string = clock_name + list_of_invariants
+    if clock_name != "" and " " + clock_name + ";" not in _nta.declaration:
+        _nta.declaration += "clock " + clock_name + ";\n"
+    if temp.invariant.value:
+        temp.invariant.value += " && " + invariant_string
+    else:
+        temp.invariant.value = invariant_string
+    return
+
+
+def create_transition(source, target, synch=""):
+    """
+    Creates a new transition from given source
+    to given target with given synchronisation.
+
+    Args:
+        source: Source location.
+        target: Target location.
+        synch: Synchronisation name.
+
+    Returns:
+        Index o the created transition in the
+        current_template's transitions list.
+    """
+    global _nta, _current_template
+    if synch and " " + synch[:-1] + ";" not in _nta.declaration:
+        _nta.declaration += "chan " + synch[:-1] + ";\n"
+    _current_template.transitions.append(pyuppaal.Transition(source=_current_template.get_location_by_name(source),
+                                                             target=_current_template.get_location_by_name(target),
+                                                             synchronisation=synch))
+    return len(_current_template.transitions) - 1
+
+
+def add_guard(transition_id, clock_name, list_of_guards):
+    """
+    Adds a guard to the current_template.
+
+    Args:
+        transition_id: Transition id of the transition
+                       on which the guard expression will
+                       be inserted. It is the index of the
+                       transition in the current_template's
+                       transitions list.
+        clock_name: Clock name.
+        list_of_guards: List of condition-number pairs elements.
+    """
+    global _nta, _current_template
+    guard_string = [clock_name + i for i in list_of_guards]
+    guard_string = " && ".join(guard_string)
+    if clock_name != "" and " " + clock_name + ";" not in _nta.declaration:
+        _nta.declaration += "clock " + clock_name + ";\n"
+    if transition_id != -1:
+	    if _current_template.transitions[transition_id].guard.value:
+	        _current_template.transitions[transition_id].guard.value += " && " + guard_string
+	    else:
+	        _current_template.transitions[transition_id].guard.value = guard_string
+
+
+def add_assignment(transition_id, clock_name):
+    """
+    Adds a assignment to the current_template.
+
+    Args:
+        transition_id: Transition id of the transition
+                       on which the assignment will
+                       be inserted. It is the index of the
+                       transition in the current_template's
+                       transitions list.
+        clock_name: Clock name.
+    """
+    global _nta, _current_template
+    assignment_string = clock_name + " := 0"
+    if clock_name != "" and " " + clock_name + ";" not in _nta.declaration:
+        _nta.declaration += "clock " + clock_name + ";\n"
+    if transition_id != -1:
+	    if _current_template.transitions[transition_id].assignment.value:
+	        _current_template.transitions[transition_id].assignment.value += ", " + assignment_string
+	    else:
+	        _current_template.transitions[transition_id].assignment.value = assignment_string
+
+
+def complete(output_file_name):
+    """
+    Completes the model. Writes model to the xml file with given name.
+
+    Args:
+        output_file_name: Name of the output xml file.
+    """
+    global _nta, _current_template
+    _nta.system += ";\n"
+    map(lambda x: x.layout(), _nta.templates)
+    xml_file = open(output_file_name, "w")
+    xml_file.write(_nta.to_xml())
+    xml_file.close()
+
+def create_committed_location(name):
+    """
+    Creates a commited location and adds to the location list.
+    """
+    committed_location = pyuppaal.Location(committed=True, name=name)
+    _current_template.locations.append(committed_location)
+
+
