@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC "-//Uppaal Team//DTD Flat System 1.1//EN" "http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd">
+<nta>
+  <declaration>chan signal;
+clock x_2;
+</declaration>
+    <template>
+    <name x="5" y="5">Gate</name>
+    
+    <declaration></declaration>
+    
+    <location id="id0" x="-72" y="-205">
+      <name x="-72" y="-190">Open</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id1" x="-72" y="-27">
+      <name x="-72" y="-12">Close</name>
+      <label kind="invariant" x="-72" y="3">x_2 &lt;= 10</label>
+      
+      
+      
+    </location>
+    
+    <init ref="id0" />
+    
+    <transition>
+      <source ref="id0" />
+      <target ref="id1" />
+      
+      
+      <label kind="synchronisation" x="-115" y="-86">signal?</label>
+      <label kind="assignment" x="-115" y="-71">x_2 := 0</label>
+      
+    </transition>
+
+    <transition>
+      <source ref="id1" />
+      <target ref="id0" />
+      
+      <label kind="guard" x="-115" y="-101">x_2 == 10</label>
+      
+      
+      
+    </transition>
+  </template>
+  <template>
+    <name x="5" y="5">Closer</name>
+    
+    <declaration></declaration>
+    
+    <location id="id0" x="-40" y="-35">
+      <name x="-40" y="-20">Closing</name>
+      
+      
+      
+      
+    </location>
+    
+    <init ref="id0" />
+    
+    <transition>
+      <source ref="id0" />
+      <target ref="id0" />
+      
+      
+      <label kind="synchronisation" x="-137" y="-5">signal!</label>
+      
+      
+    </transition>
+  </template>
+
+  <system>system Gate, Closer;
+</system>
+</nta>

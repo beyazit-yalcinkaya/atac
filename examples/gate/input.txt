@@ -1,0 +1,6 @@
+Gate can be Open Close and it is initially Open.
+If it receives signal, then it can go to Close from Open.
+If the time spent after entering Close is equal to 10, then it can go to Open from Close.
+The time spent in Close cannot be more than 10.
+Closer can only be Closing.
+It can send signal and go to Closing from Closing.

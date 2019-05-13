@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC "-//Uppaal Team//DTD Flat System 1.1//EN" "http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd">
+<nta>
+  <declaration>chan press;
+clock x_3;
+</declaration>
+    <template>
+    <name x="5" y="5">Light</name>
+    
+    <declaration></declaration>
+    
+    <location id="id0" x="-87" y="-397">
+      <name x="-87" y="-382">Off</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id1" x="-40" y="-212">
+      <name x="-40" y="-197">Dim</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id2" x="-88" y="-27">
+      <name x="-88" y="-12">Bright</name>
+      
+      
+      
+      
+    </location>
+    
+    <init ref="id0" />
+    
+    <transition>
+      <source ref="id0" />
+      <target ref="id1" />
+      
+      
+      <label kind="synchronisation" x="-77" y="-279">press?</label>
+      <label kind="assignment" x="-77" y="-264">x_3 := 0</label>
+      
+    </transition>
+
+    <transition>
+      <source ref="id1" />
+      <target ref="id2" />
+      
+      <label kind="guard" x="-83" y="-100">x_3 &lt; 2</label>
+      <label kind="synchronisation" x="-83" y="-85">press?</label>
+      
+      
+    </transition>
+
+    <transition>
+      <source ref="id1" />
+      <target ref="id0" />
+      
+      <label kind="guard" x="-77" y="-294">x_3 &gt;= 2</label>
+      <label kind="synchronisation" x="-77" y="-279">press?</label>
+      
+      
+    </transition>
+
+    <transition>
+      <source ref="id2" />
+      <target ref="id0" />
+      
+      
+      <label kind="synchronisation" x="-161" y="-182">press?</label>
+      
+      
+    </transition>
+  </template>
+  <template>
+    <name x="5" y="5">Presser</name>
+    
+    <declaration></declaration>
+    
+    <location id="id0" x="-40" y="-35">
+      <name x="-40" y="-20">Pressing</name>
+      
+      
+      
+      
+    </location>
+    
+    <init ref="id0" />
+    
+    <transition>
+      <source ref="id0" />
+      <target ref="id0" />
+      
+      
+      <label kind="synchronisation" x="-133" y="-5">press!</label>
+      
+      
+    </transition>
+  </template>
+
+  <system>system Light, Presser;
+</system>
+</nta>
