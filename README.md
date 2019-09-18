@@ -35,4 +35,4 @@ ATAC accepts sentences from a formal grammar. Each input sentence has to follow 
 * &phi;<sub>constr</sub> ::= *more than* __N__ | *more than or equal to* __N__ | *less than* __N__ | *less than or equal to* __N__ | *equal to* __N__
 * &phi;<sub>ent_lea</sub> ::= *entering* | *leaving*
 
-The sentences given by the rule &phi;<sub>spec</sub> indicates specifications of the TA model needs to follow. We map these sentences to queries that can be checked by the UPPAAL and give thees queries in a query file as an output. The details of the grammar as well as the mapping done by the tool can be found in the tool paper presenting ATAC.
+The sentences given by the rule &phi;<sub>spec</sub> indicates specifications of the TA model needs to follow. We map these sentences to queries that can be checked by the UPPAAL and give these queries in a query file as an output. The details of the grammar as well as the mapping done by the tool can be found in the tool paper presenting ATAC.
