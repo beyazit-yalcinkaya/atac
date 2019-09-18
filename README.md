@@ -16,7 +16,7 @@ The usage of ATAC is very simple!
 	7. If you enter any sentence implying a specification, then you also have a query file with ".q" extension in the same directory!
 
 
-ATAC accepts sentences from a formal grammar. Each input sentence has to follow this grammar as well as the general ordering of the sentences. Below, we give the grammar.
+ATAC accepts sentences from a formal grammar. Each input sentence has to follow this grammar. Below, we give the grammar.
 
 * __template__ := A TA model name.
 * __location__ := A location name.
