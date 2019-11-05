@@ -1,0 +1,7 @@
+Light can be Red Yellow Green and it is initially Red.
+It can go to Green from Red.
+It can go to Yellow from Green.
+It can go to Red from Yellow.
+The time spent in Red cannot be more than 5.
+The time spent in Green cannot be more than 7.
+The time spent in Yellow cannot be more than 2.
