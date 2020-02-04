@@ -18,33 +18,30 @@ _q_file_content = ""
 _output_file_name = ""
 
 Grammar = """
-    start   : init | sys | spec
-    init    : TEMPLATE_NAME " can only be " LOCATION_NAME                                            -> single_loc_init
-            | TEMPLATE_NAME " can be " locs " and it is initially " LOCATION_NAME                    -> multi_loc_init
-    sys     : tran                                                                                   -> transition
-            | "if " cond " then " tran                                                               -> conditional_transition
-    spec    : "it goes to " LOCATION_NAME " in every " NUMBER                                        -> spec1
-            | "the time spent in " LOCATION_NAME " cannot be more than " NUMBER                      -> spec2
-            | "the time spent in " LOCATION_NAME " cannot be more than or equal to " NUMBER          -> spec3
-            | LOCATION_NAME " must be reached from " LOCATION_NAME                                   -> spec4
-            | LOCATION_NAME " must be reached from " LOCATION_NAME " within " NUMBER                 -> spec5
-    locs    : LOCATION_NAME
-            | LOCATION_NAME " " locs                                                                 -> locations
-    tran    : "it can go to " locs " from " locs                                                     -> direct_transition
-            | "it can send " SYNCH_NAME " and go to " locs " from " locs                             -> transition_with_synch
-    cond    : tcond                                                                                  -> only_time_condition
-            | scond                                                                                  -> only_synch_condition
-            | scond " and " tcond                                                                    -> synch_and_time_condition
-    scond   : "it receives " SYNCH_NAME                                                              -> synch_condition
-    tcond   : "the time spent after " el " " LOCATION_NAME " is " constr
-            | "the time spent after " el " " LOCATION_NAME " is " constr " and " tcond
-    constr  : "more than " NUMBER                                                                    -> more_than
-            | "more than or equal to " NUMBER                                                        -> more_than_or_equal_to
-            | "less than " NUMBER                                                                    -> less_than
-            | "less than or equal to " NUMBER                                                        -> less_than_or_equal_to
-            | "equal to " NUMBER                                                                     -> equal_to
-    el      : "entering"                                                                             -> entering
-            | "leaving"                                                                              -> leaving
+    start  : init | tran | invrt
+    init   : TEMPLATE_NAME " can only be " LOCATION_NAME                               -> single_loc_init
+           | TEMPLATE_NAME " can be " locs " and it is initially " LOCATION_NAME       -> multi_loc_init
+    locs   : LOCATION_NAME
+           | LOCATION_NAME " " locs
+    tran   : "it can go from " locs " to " locs                                        -> simple_tran
+           | "it can send " SYNCH_NAME " and go from " locs " to " locs                -> synch_tran
+           | "if " sc " then it can go from " locs " to " locs                         -> synch_cond_simple_tran
+           | "if " tc " then it can go from " locs " to " locs                         -> time_cond_simple_tran
+           | "if " tc " then it can send " SYNCH_NAME " and go from " locs " to " locs -> time_cond_synch_tran
+           | "if " sc " and " tc " then it can go from " locs " to " locs              -> synch_time_cond_simple_tran
+    invrt  : ic " in " locs                                                            -> invrt
+    sc     : SYNCH_NAME " is received"
+    tc     : "the time spent after " sel " " LOCATION_NAME " is " constr
+           | "the time spent after " sel " " LOCATION_NAME " is " constr " and " tc
+    ic     : "the time spent after " sel " " LOCATION_NAME " cannot be " constr
+           | "the time spent after " sel " " LOCATION_NAME " cannot be " constr " and " ic
+    constr : "more than " NUMBER                                                       -> more_than
+           | "more than or equal to " NUMBER                                           -> more_than_or_equal_to
+           | "less than " NUMBER                                                       -> less_than
+           | "less than or equal to " NUMBER                                           -> less_than_or_equal_to
+           | "equal to " NUMBER                                                        -> equal_to
+    sel    : "entering"                                                                -> sel_ent
+           | "leaving"                                                                 -> sel_lea
     %import common.CNAME -> TEMPLATE_NAME
     %import common.CNAME -> SYNCH_NAME
     %import common.CNAME -> LOCATION_NAME
@@ -52,20 +49,6 @@ Grammar = """
 """
 
 parser = Lark(Grammar, parser='earley')
-
-def add_query(query):
-    """
-    Creates a file named same as the template name with
-    .q extension containing given query content.
-
-    Args:
-        query: Given query.
-    """
-    global _current_template_name, _q_file_content
-    if _q_file_content == "":
-        _q_file_content = query + "\n"
-    else:
-        _q_file_content += query + "\n"
 
 def extract_locations(t):
     """
@@ -92,8 +75,8 @@ def extract_time_condition(t):
         lk: Location entering/leaving which the clock is reset.
         cond: Condtion string.
     """
-    is_entering = True if t.children[0].data == "entering" else False
-    lk = t.children[1].value.capitalize()
+    is_entering = True if t.children[0].data == "sel_ent" else False
+    lk = t.children[1].capitalize()
     cond = ""
     if t.children[2].data == "more_than":
         cond = " > " + t.children[2].children[0].value
@@ -107,28 +90,26 @@ def extract_time_condition(t):
         cond = " == " + t.children[2].children[0].value
     return is_entering, lk, cond
 
-def extract_transition(t):
+def extract_invrnt_condition(t):
     """
-    Extracts transition info from the given tree.
+    Extracts condtions for invariants based on clocks from the given tree.
 
     Args:
-        t: A tree with transition info.
+        t: A tree with timed condition.
     Returns:
-        lis: List of locations from which outgoing transition will be created.
-        ljs: List of locations to which incoming transition will be created.
-        synch: Synch signal to be sent.
+        is_entering: Bool. Indicates if the clocks is reset
+                     while entering lk or leaving.
+        lk: Location entering/leaving which the clock is reset.
+        cond: Condtion string.
     """
-    lis = []
-    ljs = []
-    synch = ""
-    if t.data == "direct_transition":
-        lis = extract_locations(t.children[1])
-        ljs = extract_locations(t.children[0])
-    elif t.data == "transition_with_synch":
-        synch = t.children[0].value + '!'
-        lis = extract_locations(t.children[2])
-        ljs = extract_locations(t.children[1])
-    return lis, ljs, synch
+    is_entering = True if t.children[0].data == "sel_ent" else False
+    lk = t.children[1].capitalize()
+    cond = ""
+    if t.children[2].data == "more_than":
+        cond = " <= " + t.children[2].children[0].value
+    elif t.children[2].data == "more_than_or_equal_to":
+        cond = " < " + t.children[2].children[0].value
+    return is_entering, lk, cond
 
 def complete_template():
     """
@@ -165,77 +146,69 @@ def run_instruction(t):
         locations.remove(initial_location)
         locations = [initial_location] + locations
         _TA = objs.Template(_current_template_name, locations, initial_location)
-    elif t.data == "transition":
-        t = t.children[0]
-        lis, ljs, synch = extract_transition(t)
+    elif t.data == "simple_tran":
+        lis, ljs = extract_locations(t.children[0]), extract_locations(t.children[1])
         for li in lis:
             for lj in ljs:
-                _TA.create_transition(transition=(li, lj), receive_synch="", send_synch=synch);
-    elif t.data == "conditional_transition":
-        condition = t.children[0]
-        transition = t.children[1]
-        lis, ljs, send_synch = extract_transition(transition)
+                _TA.create_transition(transition=(li, lj), receive_synch="", send_synch="")
+    elif t.data == "synch_tran":
+        synch, lis, ljs = t.children[0] + "!", extract_locations(t.children[1]), extract_locations(t.children[2])
+        for li in lis:
+            for lj in ljs:
+                _TA.create_transition(transition=(li, lj), receive_synch="", send_synch=synch)
+    elif t.data == "synch_cond_simple_tran":
+        synch, lis, ljs = t.children[0].children[0] + "?", extract_locations(t.children[1]), extract_locations(t.children[2])
+        for li in lis:
+            for lj in ljs:
+                _TA.create_transition(transition=(li, lj), receive_synch=synch, send_synch="")
+    elif t.data == "time_cond_simple_tran":
+        condition, lis, ljs = t.children[0], extract_locations(t.children[1]), extract_locations(t.children[2])
         created_transitions = []
-        receive_synch = condition.children[0].children[0].value + "?" if condition.data == "only_synch_condition" or condition.data == "synch_and_time_condition" else ""
         for li in lis:
             for lj in ljs:
-                created_transitions += _TA.create_transition(transition=(li, lj), receive_synch=receive_synch, send_synch=send_synch);
-
-        if condition.data == "only_time_condition":
-            condition = condition.children[0]
+                created_transitions += _TA.create_transition(transition=(li, lj), receive_synch="", send_synch="")
+        while True:
+            is_entering, lk, cond = extract_time_condition(condition)
+            for created_transition in created_transitions:
+                _TA.create_clock(guard_info=(created_transition, cond), invariant_info=(), assignment_info=[("", lk)] if is_entering else [(lk, "")])
+            if len(condition.children) < 4:
+                break
+            condition = condition.children[3]
+    elif t.data == "time_cond_synch_tran":
+        condition, synch, lis, ljs = t.children[0], t.children[1] + "!", extract_locations(t.children[2]), extract_locations(t.children[3])
+        created_transitions = []
+        for li in lis:
+            for lj in ljs:
+                created_transitions += _TA.create_transition(transition=(li, lj), receive_synch="", send_synch=synch)
+        while True:
+            is_entering, lk, cond = extract_time_condition(condition)
+            for created_transition in created_transitions:
+                _TA.create_clock(guard_info=(created_transition, cond), invariant_info=(), assignment_info=[("", lk)] if is_entering else [(lk, "")])
+            if len(condition.children) < 4:
+                break
+            condition = condition.children[3]
+    elif t.data == "synch_time_cond_simple_tran":
+        synch, condition, lis, ljs = t.children[0].children[0] + "?", t.children[1], extract_locations(t.children[2]), extract_locations(t.children[3])
+        created_transitions = []
+        for li in lis:
+            for lj in ljs:
+                created_transitions += _TA.create_transition(transition=(li, lj), receive_synch=synch, send_synch="")
+        while True:
+            is_entering, lk, cond = extract_time_condition(condition)
+            for created_transition in created_transitions:
+                _TA.create_clock(guard_info=(created_transition, cond), invariant_info=(), assignment_info=[("", lk)] if is_entering else [(lk, "")])
+            if len(condition.children) < 4:
+                break
+            condition = condition.children[3]
+    elif t.data == "invrt":
+        condition, ls = t.children[0], extract_locations(t.children[1])
+        for l in ls:
             while True:
-                is_entering, lk, cond = extract_time_condition(condition)
-                for created_transition in created_transitions:
-                    _TA.create_clock(guard_info=(created_transition, cond), invariant_info=(), assignment_info=[("", lk)] if is_entering else [(lk, "")])
+                is_entering, lk, cond = extract_invrnt_condition(condition)
+                _TA.create_clock(guard_info=(), invariant_info=([l], cond), assignment_info=[("", lk)] if is_entering else [(lk, "")])
                 if len(condition.children) < 4:
                     break
                 condition = condition.children[3]
-        elif condition.data == "only_synch_condition":
-            pass
-        elif condition.data == "synch_and_time_condition":
-            condition = condition.children[1]
-            while True:
-                is_entering, lk, cond = extract_time_condition(condition)
-                for created_transition in created_transitions:
-                    _TA.create_clock(guard_info=(created_transition, cond), invariant_info=(), assignment_info=[("", lk)] if is_entering else [(lk, "")])
-                if len(condition.children) < 4:
-                    break
-                condition = condition.children[3]
-        else:
-            print "ERROR", condition
-    elif t.data == "spec1":#A[] !(!x.a and x_0 > 4) In all states it is not the case that TA is not in a and x_0 is more than 4. It goes to A in every 4.
-        l = t.children[0].value.capitalize()
-        cond = " <= " + t.children[1].value
-        locs = filter(lambda x: x != l, _TA.get_locations())
-        for lp in locs:
-            if _TA.all_simple_paths(l, lp) != []:
-                if _TA.all_simple_paths(lp, l) == []:
-                    _TA.create_transition(transition=(lp, l), receive_synch="", send_synch="")
-        clock_name = _TA.create_clock(guard_info=(), invariant_info=(locs, cond), assignment_info=[(l, "")])
-        _queries[clock_name] = "A[]!(!" + _current_template_name + "." + l + " and x > " + t.children[1].value + ")"
-    elif t.data == "spec2":#A[] !(x.a and x_0 > 4). The time spent in A cannot be more than 4.
-        l = t.children[0].value.capitalize()
-        cond = " <= " + t.children[1].value
-        clock_name = _TA.create_clock(guard_info=(), invariant_info=([l], cond), assignment_info=[("", l)])
-        _queries[clock_name] = "A[]!(" + _current_template_name + "." + l + " and x > " + t.children[1].value + ")"
-    elif t.data == "spec3":#A[] !(x.a and x_0 >= 4). The time spent in A cannot be more than 4.
-        l = t.children[0].value.capitalize()
-        cond = " < " + t.children[1].value
-        clock_name = _TA.create_clock(guard_info=(), invariant_info=([l], cond), assignment_info=[("", l)])
-        _queries[clock_name] = "A[]!(" + _current_template_name + "." + l + " and x >= " + t.children[1].value + ")"
-    elif t.data == "spec4":#x.a --> x.b, i.e., A[](x.a imply A<> x.b). B must be reached from A.
-        li = t.children[1].capitalize()
-        lj = t.children[0].capitalize()
-        if _TA.all_simple_paths(li, lj) == []:
-            _TA.create_transition(transition=(li, lj), receive_synch="", send_synch="")
-        add_query(_current_template_name + "." + li + " --> " + _current_template_name + "." + lj)
-    elif t.data == "spec5":#x.a --> (x.b and x_0 <= 4), i.e., A[](x.a imply A<> (x.b and x_0 <= 4)). B must be reached from A within 4.
-        li = t.children[1].capitalize()
-        lj = t.children[0].capitalize()
-        clock_name = _TA.create_clock(guard_info=(), invariant_info=([li], cond), assignment_info=[("",lj)])
-        if _TA.all_simple_paths(li, lj) == []:
-            _TA.create_transition(transition=(li, lj), receive_synch="", send_synch="")
-        _queries[clock_name] = _current_template_name + "." + li + " --> (" + _current_template_name + "." + lj + " and x <= " + t.children[2].value + ")"
 
 def run_line(line):
     """
@@ -248,7 +221,7 @@ def run_line(line):
     for inst in parse_tree.children:
         run_instruction(inst)
 
-def get_input_and_parse():
+def get_descriptions():
     """
     Starts parsing procedure, reads each line from stdin, and call run_line for each one.
     """
@@ -268,20 +241,23 @@ def init_screen():
     """
     global _output_file_name
     print("#################################################################")
-    print("########## ATAC: Automated Timed Automata Construction ##########")
+    print("########## ATAC: Assisted Timed Automata Construction ##########")
     print("#################################################################")
     print("Enter output file name: ")
     _output_file_name = raw_input()
-    print("Below, you can start entering descriptions and specifications:")
+    print("Below, you can start entering descriptions:")
 
-init_screen()
-get_input_and_parse()
-if _TA:
-    complete_template()
-    _TA.write_to_xml(_output_file_name + ".xml")
-if _q_file_content:
-    f = open(_output_file_name + ".q", "w+")
-    f.write(_q_file_content)
-    f.close()
+def main():
+    init_screen()
+    get_descriptions()
+    if _TA:
+        complete_template()
+        _TA.write_to_xml(_output_file_name + ".xml")
+    if _q_file_content:
+        f = open(_output_file_name + ".q", "w+")
+        f.write(_q_file_content)
+        f.close()
+
+main()
 
 
