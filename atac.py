@@ -13,8 +13,6 @@ Internal global variables.
 """
 _TA = None
 _current_template_name = ""
-_queries = {}
-_q_file_content = ""
 _output_file_name = ""
 
 Grammar = """
@@ -111,18 +109,6 @@ def extract_invrnt_condition(t):
         cond = " < " + t.children[2].children[0].value
     return is_entering, lk, cond
 
-def complete_template():
-    """
-    Completes the current TA model.
-    """
-    global _queries
-    clock_mapping = _TA.complete_template()
-    for c in _queries.keys():
-        for c_n in clock_mapping[c]:
-            add_query(_queries[c].replace('x', c_n))
-    del _queries
-    _queries = {}
-
 def run_instruction(t):
     """
     Runs instructions according to the parse tree.
@@ -133,13 +119,13 @@ def run_instruction(t):
     global _TA, _current_template_name
     if t.data == "single_loc_init":
         if _TA:
-            complete_template()
+            _TA.complete_template()
         _current_template_name = t.children[0].value.capitalize()
         initial_location = t.children[1].value.capitalize()
         _TA = objs.Template(_current_template_name, [initial_location], initial_location)
     elif t.data == "multi_loc_init":
         if _TA:
-            complete_template()
+            _TA.complete_template()
         _current_template_name = t.children[0].value.capitalize()
         locations = extract_locations(t.children[1])
         initial_location = t.children[2].value.capitalize()
@@ -251,13 +237,7 @@ def main():
     init_screen()
     get_descriptions()
     if _TA:
-        complete_template()
+        _TA.complete_template()
         _TA.write_to_xml(_output_file_name + ".xml")
-    if _q_file_content:
-        f = open(_output_file_name + ".q", "w+")
-        f.write(_q_file_content)
-        f.close()
 
 main()
-
-
