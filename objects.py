@@ -157,7 +157,7 @@ class Template(object):
             result = filter(lambda x: "C" not in x[0], transitions)
         return result
 
-    def create_clock(self, guard_info=(), invariant_info=(), assignment_info=[]):
+    def create_clock(self, guard_info=(), invariant_info=(), assignment_info=[], is_spec_clock=False):
         """
         Creates a new clock with given guard, invariant, and assignment info.
 
@@ -172,7 +172,7 @@ class Template(object):
             assignment_info: [(source, target)].
                              Transition on which the created clock will be reset.
         """
-        clock = Clock(name=self.get_clock_name())
+        clock = Clock(name=self.get_clock_name(), is_spec_clock=is_spec_clock)
         assignment_info.append(("LOCATION_ZERO", self.initial_location))
         if guard_info:
             clock.add_guard(guard_info[0], guard_info[1])
@@ -219,9 +219,13 @@ class Template(object):
         for c in self.clocks:
         	clock_mapping[c.name] = [c.name]
         self.finalize_transitions()
+        spec_clocks = filter(lambda x: x.is_spec_clock, self.clocks)
+        not_spec_clocks = filter(lambda x: not x.is_spec_clock, self.clocks)
+        self.clocks = not_spec_clocks
         self.remove_unnecessary_resets()
         if len(self.clocks) > 1:
             self.reduce_clocks(clock_mapping)
+        self.clocks += spec_clocks
         for c in self.clocks:
             c.assignments = list(set(c.assignments))
             for t in c.guards.keys():
@@ -288,7 +292,7 @@ class Template(object):
 
     def remove_unnecessary_resets(self):
         """
-        Removes unnecessary rests, i.e., resets from which no constraint is reachable
+        Removes unnecessary resets, i.e., resets from which no constraint is reachable
         without passing trough another reset of the clock or there is no path in between.
         """
         for c in self.clocks:
@@ -446,8 +450,16 @@ class Template(object):
         assignments = []
         for c in partition:
             assignments.extend(c.assignments)
-            guards.update(c.guards)
-            invariants.update(c.invariants)
+            for i in c.guards.keys():
+                if i in guards.keys():
+                    guards[i].extend(c.guards[i])
+                else:
+                    guards[i] = c.guards[i]
+            for i in c.invariants.keys():
+                if i in invariants.keys():
+                    invariants[i].extend(c.invariants[i])
+                else:
+                    invariants[i] = c.invariants[i]
             self.clocks.remove(c)
         new_clock = Clock(partition[0].name, guards=guards, invariants=invariants, assignments=assignments)
         self.clocks.append(new_clock)
@@ -505,7 +517,7 @@ class Clock(object):
     """
     Clock object definition. Used by the Template object.
     """
-    def __init__(self, name="", guards={}, invariants={}, assignments=[]):
+    def __init__(self, name="", guards={}, invariants={}, assignments=[], is_spec_clock=False):
         """
         Initializes the object.
 
@@ -519,6 +531,7 @@ class Clock(object):
         self.guards = guards if guards else {} # [(s, t, t_id) : condition_list]
         self.invariants = invariants if invariants else {} # [l : condition_list]
         self.assignments = assignments if assignments else [] # [(s, t, t_id)]
+        self.is_spec_clock = is_spec_clock
 
     def add_guard(self, transition, condition):
         """
