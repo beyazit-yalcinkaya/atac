@@ -46,7 +46,6 @@ Grammar = """
                | "for " TEMPLATE_NAME " it shall always be the case that deadlock does not occur"                   -> al_not_deadlock
                | "for " TEMPLATE_NAME " " state_frml " leads to " state_frml                                        -> leads_to
                | "for " TEMPLATE_NAME " " LOCATION_NAME " shall hold within every " NUMBER                          -> special_spec1
-               | "for " TEMPLATE_NAME " " LOCATION_NAME " shall be reachable"                                       -> special_spec2
     path_frml  : "shall always"                                                                                     -> shall_always
                | "shall eventually"                                                                                 -> shall_eventually
                | "might always"                                                                                     -> might_always
@@ -306,10 +305,6 @@ def run_instruction(t):
         n = t.children[2].value
         c = _TAs[template_name].create_clock(guard_info=(), invariant_info=(), assignment_info=[(l, "")], is_spec_clock=True)
         _queries += "A[] not " + template_name + "." + l + " or " + c + " <= " + n + "\n"
-    elif t.data == "special_spec2":
-        template_name = t.children[0].value.capitalize()
-        l = t.children[1].value.capitalize()
-        _queries += "E<> " + template_name + "." + l + "\n"
 
 def run_line(line):
     """
