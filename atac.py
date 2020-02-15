@@ -43,21 +43,19 @@ Grammar = """
     el         : "entering"                                                                                         -> el_ent
                | "leaving"                                                                                          -> el_lea
     spec       : "for " TEMPLATE_NAME " it " path_frml " be the case that " state_frml                              -> general_spec
-               | "for " TEMPLATE_NAME " it shall invariantly be the case that deadlock occurs"                      -> inv_deadlock
-               | "for " TEMPLATE_NAME " it shall invariantly be the case that deadlock does not occur"              -> inv_not_deadlock
-               | "for " TEMPLATE_NAME " it might possibly be the case that deadlock occurs"                         -> pot_al_deadlock
-               | "for " TEMPLATE_NAME " it might possibly be the case that deadlock does not occur"                 -> pot_al_not_deadlock
+               | "for " TEMPLATE_NAME " it shall always be the case that deadlock does not occur"                   -> al_not_deadlock
                | "for " TEMPLATE_NAME " " state_frml " leads to " state_frml                                        -> leads_to
                | "for " TEMPLATE_NAME " " LOCATION_NAME " shall hold within every " NUMBER                          -> special_spec1
                | "for " TEMPLATE_NAME " " LOCATION_NAME " shall be reachable"                                       -> special_spec2
-    path_frml  : "shall invariantly"                                                                                -> shall_invariantly
+    path_frml  : "shall always"                                                                                     -> shall_always
                | "shall eventually"                                                                                 -> shall_eventually
-               | "might potentially always"                                                                         -> might_potentially_always
-               | "might possibly"                                                                                   -> might_possibly
+               | "might always"                                                                                     -> might_always
+               | "might eventually"                                                                                 -> might_eventually
     state_frml : atom
                | atom " " op " " state_frml
     atom       : "the time spent after " el " " LOCATION_NAME " is " tconstr                                        -> time_spec
                | locs " holds"                                                                                      -> loc_spec
+               | locs " does not hold"                                                                              -> not_loc_spec
     op         : "and"                                                                                              -> and
                | "or"                                                                                               -> or
                | "implies"                                                                                          -> implies
@@ -153,13 +151,13 @@ def extract_path_frml(t):
     Returns:
         path formula
     """
-    if t.data == "shall_invariantly":
+    if t.data == "shall_always":
         return "A[]"
     elif t.data == "shall_eventually":
         return "A<>"
-    elif t.data == "might_potentially_always":
+    elif t.data == "might_always":
         return "E[]"
-    elif t.data == "might_possibly":
+    elif t.data == "might_eventually":
         return "E<>"
 
 def extract_state_frml(t, template_name):
@@ -178,9 +176,12 @@ def extract_state_frml(t, template_name):
             is_entering, lk, cond = extract_time_condition(t.children[0])
             c = _TAs[template_name].create_clock(guard_info=(), invariant_info=(), assignment_info=[("", lk)] if is_entering else [(lk, "")], is_spec_clock=True)
             query += c + cond
-        else:
+        elif t.children[0].data == "loc_spec":
             ls = extract_locations(t.children[0].children[0])
-            query += " and ".join(map(lambda x: template_name + "." + x, ls))   
+            query += " and ".join(map(lambda x: template_name + "." + x, ls))
+        elif t.children[0].data == "not_loc_spec":
+            ls = extract_locations(t.children[0].children[0])
+            query += " and ".join(map(lambda x: "not " + template_name + "." + x, ls))
         if len(t.children) < 3:
             break
         if t.children[1].data == "and":
@@ -288,11 +289,11 @@ def run_instruction(t):
         _queries += path_frml + " " + state_frml + "\n"
     elif t.data == "inv_deadlock":
         _queries += "A[] deadlock\n"
-    elif t.data == "inv_not_deadlock":
+    elif t.data == "al_not_deadlock":
         _queries += "A[] not deadlock\n"
-    elif t.data == "pot_al_deadlock":
+    elif t.data == "pos_deadlock":
         _queries += "E<> deadlock\n"
-    elif t.data == "pot_al_not_deadlock":
+    elif t.data == "pos_not_deadlock":
         _queries += "E<> not deadlock\n"
     elif t.data == "leads_to":
         template_name = t.children[0].value.capitalize()
@@ -347,9 +348,7 @@ def init_screen():
     _output_file_name = raw_input()
     print("Below, you can start entering descriptions and specifications:")
 
-def main():
-    init_screen()
-    get_lines()
-    complete_templates()
+init_screen()
+get_lines()
+complete_templates()
 
-main()
