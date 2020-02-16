@@ -74,7 +74,7 @@ def complete_templates():
     clock_mappings = {}
     for ta in _TAs.keys():
         clock_mappings.update(_TAs[ta].complete_template())
-        _TAs[ta].write_to_xml(_output_file_name + ".xml")
+    objs.write_to_xml(_output_file_name + ".xml")
     if _queries:
         f = open(_output_file_name + ".q", "w+")
         f.write(_queries)
@@ -132,13 +132,13 @@ def extract_invrnt_condition(t):
         lk: Location entering/leaving which the clock is reset.
         cond: Condtion string.
     """
-    is_entering = True if t.children[0].children[0].data == "el_ent" else False
-    lk = t.children[0].children[1].capitalize()
+    is_entering = True if t.children[0].data == "el_ent" else False
+    lk = t.children[1].capitalize()
     cond = ""
-    if t.children[1].data == "more_than":
-        cond = " <= " + t.children[1].children[0].value
-    elif t.children[1].data == "more_than_or_equal_to":
-        cond = " < " + t.children[1].children[0].value
+    if t.children[2].data == "more_than":
+        cond = " <= " + t.children[2].children[0].value
+    elif t.children[2].data == "more_than_or_equal_to":
+        cond = " < " + t.children[2].children[0].value
     return is_entering, lk, cond
 
 def extract_path_frml(t):

@@ -8,6 +8,15 @@ import sys
 import interface
 import networkx as nx
 
+def write_to_xml(output_file_name):
+    """
+    Writes all TA template to the given xml file in xml format.
+
+    Args:
+        output_file_name: Name of the xml file.
+    """
+    interface.complete(output_file_name)
+
 class Template(object):
     """
     TA template that is described by the input.
@@ -23,7 +32,7 @@ class Template(object):
             clocks: List of clock objects. Clocks used in the TA.
             clock_count: Integer. Number of clocks.
         """
-        interface.initialize()  
+        interface.initialize(name)  
         interface.create_template(name, locations)
         self.name = name
         self.locations = locations + ["LOCATION_ZERO"]
@@ -72,24 +81,24 @@ class Template(object):
         if receive_synch and send_synch:
             committed_location = self.create_committed_location()
             if transition[0] and transition[1]:
-                t_id1 = interface.create_transition(transition[0], committed_location, receive_synch)
-                t_id2 = interface.create_transition(committed_location, transition[1], send_synch)
+                t_id1 = interface.create_transition(self.name, transition[0], committed_location, receive_synch)
+                t_id2 = interface.create_transition(self.name, committed_location, transition[1], send_synch)
                 self.ta.add_edge(transition[0], committed_location, t_id1)
                 self.ta.add_edge(committed_location, transition[1], t_id2)
                 transition_list.append((transition[0], committed_location, t_id1))
                 transition_list.append((committed_location, transition[1], t_id2))
             elif transition[0]:
                 for l in self.locations:
-                    t_id1 = interface.create_transition(transition[0], committed_location, receive_synch)
-                    t_id2 = interface.create_transition(committed_location, l, send_synch)
+                    t_id1 = interface.create_transition(self.name, transition[0], committed_location, receive_synch)
+                    t_id2 = interface.create_transition(self.name, committed_location, l, send_synch)
                     self.ta.add_edge(transition[0], committed_location, t_id1)
                     self.ta.add_edge(committed_location, l, t_id2)
                     transition_list.append((transition[0], committed_location, t_id1))
                     transition_list.append((committed_location, l, t_id2))
             elif transition[1]:
                 for l in self.locations:
-                    t_id1 = interface.create_transition(committed_location, transition[1], receive_synch)
-                    t_id2 = interface.create_transition(l, committed_location, send_synch)
+                    t_id1 = interface.create_transition(self.name, committed_location, transition[1], receive_synch)
+                    t_id2 = interface.create_transition(self.name, l, committed_location, send_synch)
                     self.ta.add_edge(l, committed_location, t_id1)
                     self.ta.add_edge(committed_location, transition[1], t_id2)
                     transition_list.append((l, committed_location, t_id1))
@@ -97,31 +106,31 @@ class Template(object):
             else:
                 for l_s in self.locations:
                     for l_t in self.locations:
-                        t_id1 = interface.create_transition(l_s, committed_location, receive_synch)
-                        t_id2 = interface.create_transition(committed_location, l_t, send_synch)
+                        t_id1 = interface.create_transition(self.name, l_s, committed_location, receive_synch)
+                        t_id2 = interface.create_transition(self.name, committed_location, l_t, send_synch)
                         self.ta.add_edge(l_s, committed_location, t_id1)
                         self.ta.add_edge(committed_location, l_t, t_id2)
                         transition_list.append((l_s, committed_location, t_id1))
                         transition_list.append((committed_location, l_t, t_id2))
         else:
             if transition[0] and transition[1]:
-                t_id = interface.create_transition(transition[0], transition[1], receive_synch if receive_synch else send_synch)
+                t_id = interface.create_transition(self.name, transition[0], transition[1], receive_synch if receive_synch else send_synch)
                 self.ta.add_edge(transition[0], transition[1], t_id)
                 transition_list.append((transition[0], transition[1], t_id))
             elif transition[0]:
                 for l in self.locations:
-                    t_id = interface.create_transition(transition[0], l, receive_synch if receive_synch else send_synch)
+                    t_id = interface.create_transition(self.name, transition[0], l, receive_synch if receive_synch else send_synch)
                     self.ta.add_edge(transition[0], l, t_id)
                     transition_list.append((transition[0], l, t_id))
             elif transition[1]:
                 for l in self.locations:
-                    t_id = interface.create_transition(l, transition[1], receive_synch if receive_synch else send_synch)
+                    t_id = interface.create_transition(self.name, l, transition[1], receive_synch if receive_synch else send_synch)
                     self.ta.add_edge(l, transition[1], t_id)
                     transition_list.append((l, transition[1], t_id))
             else:
                 for l_s in self.locations:
                     for l_t in self.locations:
-                        t_id = interface.create_transition(l_s, l_t, receive_synch if receive_synch else send_synch)
+                        t_id = interface.create_transition(self.name, l_s, l_t, receive_synch if receive_synch else send_synch)
                         self.ta.add_edge(l_s, l_t, t_id)
                         transition_list.append((l_s, l_t, t_id))
         return transition_list
@@ -229,12 +238,12 @@ class Template(object):
         for c in self.clocks:
             c.assignments = list(set(c.assignments))
             for t in c.guards.keys():
-                interface.add_guard(t[2], c.name, c.guards[t])
+                interface.add_guard(self.name, t[2], c.name, c.guards[t])
             for l in c.invariants.keys():
-                interface.add_invariant(l, c.name, c.invariants[l])
+                interface.add_invariant(self.name, l, c.name, c.invariants[l])
             for t in c.assignments:
-                interface.add_assignment(t[2], c.name)
-        interface.add_current_template_to_nta()
+                interface.add_assignment(self.name, t[2], c.name)
+        interface.add_current_template_to_nta(self.name)
         for c in clock_mapping.keys():
         	clock_mapping[c] = list(set(clock_mapping[c]))
         return clock_mapping
@@ -248,19 +257,10 @@ class Template(object):
 
         """
         committed_location_name = "C" + str(self.committed_location_count)
-        interface.create_committed_location(committed_location_name)
+        interface.create_committed_location(self.name, committed_location_name)
         self.committed_location_count += 1
         self.locations.append(committed_location_name)
         return committed_location_name
-
-    def write_to_xml(self, output_file_name):
-        """
-        Writes TA template to the given xml file in xml format.
-
-        Args:
-            output_file_name: Name of the xml file.
-        """
-        interface.complete(output_file_name)
 
     def get_clock_name(self):
         """

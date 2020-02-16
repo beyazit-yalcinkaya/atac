@@ -12,14 +12,14 @@ Internal global variables.
 Current template is manipulated by the functions and when is finished it is added to the nta.
 """
 _nta = None
-_current_template = None
+_templates = {}
 
-def initialize():
+def initialize(template_name):
     """
     Initializes internal global variables.
     This function must be called before any other function.
     """
-    global _nta, _current_template
+    global _nta
     if not _nta:
 	    _nta = pyuppaal.NTA()
     return
@@ -33,33 +33,33 @@ def create_template(template_name, list_of_locations): # while proccessing input
         template_name: Name of the template.
         list_of_locations: List of location in the template.
     """
-    global _nta, _current_template
+    global _nta
     n = len(list_of_locations)
     temp = [pyuppaal.Location(name=list_of_locations[i]) for i in range(0, n)]
-    _current_template = pyuppaal.Template(name=pyuppaal.Label("name", template_name), locations=temp, initlocation=temp[0])
-    _current_template.assign_ids()
+    _templates[template_name] = pyuppaal.Template(name=pyuppaal.Label("name", template_name), locations=temp, initlocation=temp[0])
+    _templates[template_name].assign_ids()
     return
 
 
-def add_current_template_to_nta():
+def add_current_template_to_nta(template_name):
     """
     Adds current_template the the nta object.
     """
-    global _nta, _current_template
+    global _nta
     try:
-        assert _current_template != None
-        _nta.add_template(_current_template)
+        assert _templates[template_name] != None
+        _nta.add_template(_templates[template_name])
         if _nta.system:
-            _nta.system += ", " + _current_template.name.value
+            _nta.system += ", " + _templates[template_name].name.value
         else:
-            _nta.system = "system " + _current_template.name.value
-        _current_template = None
+            _nta.system = "system " + _templates[template_name].name.value
+        _templates[template_name] = None
     except AssertionError:
         pass
     return
 
 
-def add_invariant(location_name, clock_name, list_of_invariants):
+def add_invariant(template_name, location_name, clock_name, list_of_invariants):
     """
     Adds an invariant to current_template.
 
@@ -68,8 +68,8 @@ def add_invariant(location_name, clock_name, list_of_invariants):
         clock_name: Clock name.
         list_of_invariants: List of condition-number pairs elements.
     """
-    global _nta, _current_template
-    temp = _current_template.get_location_by_name(location_name)
+    global _nta
+    temp = _templates[template_name].get_location_by_name(location_name)
     invariant_string = clock_name + list_of_invariants
     if clock_name != "" and " " + clock_name + ";" not in _nta.declaration:
         _nta.declaration += "clock " + clock_name + ";\n"
@@ -80,7 +80,7 @@ def add_invariant(location_name, clock_name, list_of_invariants):
     return
 
 
-def create_transition(source, target, synch=""):
+def create_transition(template_name, source, target, synch=""):
     """
     Creates a new transition from given source
     to given target with given synchronisation.
@@ -94,16 +94,16 @@ def create_transition(source, target, synch=""):
         Index o the created transition in the
         current_template's transitions list.
     """
-    global _nta, _current_template
+    global _nta
     if synch and " " + synch[:-1] + ";" not in _nta.declaration:
         _nta.declaration += "chan " + synch[:-1] + ";\n"
-    _current_template.transitions.append(pyuppaal.Transition(source=_current_template.get_location_by_name(source),
-                                                             target=_current_template.get_location_by_name(target),
+    _templates[template_name].transitions.append(pyuppaal.Transition(source=_templates[template_name].get_location_by_name(source),
+                                                             target=_templates[template_name].get_location_by_name(target),
                                                              synchronisation=synch))
-    return len(_current_template.transitions) - 1
+    return len(_templates[template_name].transitions) - 1
 
 
-def add_guard(transition_id, clock_name, list_of_guards):
+def add_guard(template_name, transition_id, clock_name, list_of_guards):
     """
     Adds a guard to the current_template.
 
@@ -116,19 +116,19 @@ def add_guard(transition_id, clock_name, list_of_guards):
         clock_name: Clock name.
         list_of_guards: List of condition-number pairs elements.
     """
-    global _nta, _current_template
+    global _nta
     guard_string = [clock_name + i for i in list_of_guards]
     guard_string = " && ".join(guard_string)
     if clock_name != "" and " " + clock_name + ";" not in _nta.declaration:
         _nta.declaration += "clock " + clock_name + ";\n"
     if transition_id != -1:
-	    if _current_template.transitions[transition_id].guard.value:
-	        _current_template.transitions[transition_id].guard.value += " && " + guard_string
+	    if _templates[template_name].transitions[transition_id].guard.value:
+	        _templates[template_name].transitions[transition_id].guard.value += " && " + guard_string
 	    else:
-	        _current_template.transitions[transition_id].guard.value = guard_string
+	        _templates[template_name].transitions[transition_id].guard.value = guard_string
 
 
-def add_assignment(transition_id, clock_name):
+def add_assignment(template_name, transition_id, clock_name):
     """
     Adds a assignment to the current_template.
 
@@ -140,15 +140,15 @@ def add_assignment(transition_id, clock_name):
                        transitions list.
         clock_name: Clock name.
     """
-    global _nta, _current_template
-    assignment_string = clock_name + " := 0"
+    global _nta
+    assignment_string = clock_name + " = 0"
     if clock_name != "" and " " + clock_name + ";" not in _nta.declaration:
         _nta.declaration += "clock " + clock_name + ";\n"
     if transition_id != -1:
-	    if _current_template.transitions[transition_id].assignment.value:
-	        _current_template.transitions[transition_id].assignment.value += ", " + assignment_string
+	    if _templates[template_name].transitions[transition_id].assignment.value:
+	        _templates[template_name].transitions[transition_id].assignment.value += ", " + assignment_string
 	    else:
-	        _current_template.transitions[transition_id].assignment.value = assignment_string
+	        _templates[template_name].transitions[transition_id].assignment.value = assignment_string
 
 
 def complete(output_file_name):
@@ -158,18 +158,18 @@ def complete(output_file_name):
     Args:
         output_file_name: Name of the output xml file.
     """
-    global _nta, _current_template
+    global _nta
     _nta.system += ";\n"
     map(lambda x: x.layout(), _nta.templates)
     xml_file = open(output_file_name, "w")
     xml_file.write(_nta.to_xml())
     xml_file.close()
 
-def create_committed_location(name):
+def create_committed_location(template_name, name):
     """
     Creates a commited location and adds to the location list.
     """
     committed_location = pyuppaal.Location(committed=True, name=name)
-    _current_template.locations.append(committed_location)
+    _templates[template_name].locations.append(committed_location)
 
 
