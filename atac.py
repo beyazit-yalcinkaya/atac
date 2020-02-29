@@ -25,7 +25,8 @@ Grammar = """
                | "if " tc " then " TEMPLATE_NAME " can go from " locs " to " locs                                   -> time_cond_simple_tran
                | "if " tc " then " TEMPLATE_NAME " can send " SYNCH_NAME " and go from " locs " to " locs           -> time_cond_synch_tran
                | "if " sc " and " tc " then " TEMPLATE_NAME " can go from " locs " to " locs                        -> synch_time_cond_simple_tran
-    invrt      : "for " TEMPLATE_NAME " " ic " in " locs                                                            -> invrt
+    invrt      : "for " TEMPLATE_NAME " " ic " in " locs                                                            -> invrt1
+               | "for " TEMPLATE_NAME " the time spent in " locs " cannot be " iconstr                              -> invrt2
     locs       : LOCATION_NAME
                | LOCATION_NAME " " locs
     sc         : SYNCH_NAME " is received"
@@ -42,16 +43,16 @@ Grammar = """
                | "more than or equal to " NUMBER                                                                    -> more_than_or_equal_to
     el         : "entering"                                                                                         -> el_ent
                | "leaving"                                                                                          -> el_lea
-    spec       : "for " TEMPLATE_NAME " it " path_frml " be the case that " state_frml                              -> general_spec
-               | "for " TEMPLATE_NAME " it shall always be the case that deadlock does not occur"                   -> al_not_deadlock
-               | "for " TEMPLATE_NAME " " state_frml " leads to " state_frml                                        -> leads_to
+    spec       : "it " path_frml " be the case that " state_frml                                                    -> general_spec
+               | "deadlock never occurs"                                                                            -> al_not_deadlock
+               | state_frml " leads to " state_frml                                                                 -> leads_to
                | "for " TEMPLATE_NAME " " LOCATION_NAME " shall hold within every " NUMBER                          -> special_spec1
     path_frml  : "shall always"                                                                                     -> shall_always
                | "shall eventually"                                                                                 -> shall_eventually
                | "might always"                                                                                     -> might_always
                | "might eventually"                                                                                 -> might_eventually
-    state_frml : atom
-               | atom " " op " " state_frml
+    state_frml : "for " TEMPLATE_NAME " " atom
+               | "for " TEMPLATE_NAME " " atom " " op " " state_frml
     atom       : "the time spent after " el " " LOCATION_NAME " is " tconstr                                        -> time_spec
                | locs " holds"                                                                                      -> loc_spec
                | locs " does not hold"                                                                              -> not_loc_spec
@@ -159,37 +160,37 @@ def extract_path_frml(t):
     elif t.data == "might_eventually":
         return "E<>"
 
-def extract_state_frml(t, template_name):
+def extract_state_frml(t):
     """
     Extracts state formula.
 
     Args:
         t: A tree with state formula.
-        template_name: Template name.
     Returns:
         state formula
     """
+    template_name = t.children[0].value.capitalize()
     query = ""
     while True:
-        if t.children[0].data == "time_spec":
-            is_entering, lk, cond = extract_time_condition(t.children[0])
+        if t.children[1].data == "time_spec":
+            is_entering, lk, cond = extract_time_condition(t.children[1])
             c = _TAs[template_name].create_clock(guard_info=(), invariant_info=(), assignment_info=[("", lk)] if is_entering else [(lk, "")], is_spec_clock=True)
             query += c + cond
-        elif t.children[0].data == "loc_spec":
-            ls = extract_locations(t.children[0].children[0])
+        elif t.children[1].data == "loc_spec":
+            ls = extract_locations(t.children[1].children[0])
             query += " and ".join(map(lambda x: template_name + "." + x, ls))
-        elif t.children[0].data == "not_loc_spec":
-            ls = extract_locations(t.children[0].children[0])
+        elif t.children[1].data == "not_loc_spec":
+            ls = extract_locations(t.children[1].children[0])
             query += " and ".join(map(lambda x: "not " + template_name + "." + x, ls))
-        if len(t.children) < 3:
+        if len(t.children) < 4:
             break
-        if t.children[1].data == "and":
+        if t.children[2].data == "and":
             query += " and "
-        elif t.children[1].data == "or":
+        elif t.children[2].data == "or":
             query += " or "
-        elif t.children[1].data == "implies":
+        elif t.children[2].data == "implies":
             query += " imply "
-        t = t.children[2]
+        t = t.children[3]
     return query
 
 def run_instruction(t):
@@ -271,9 +272,8 @@ def run_instruction(t):
             if len(condition.children) < 4:
                 break
             condition = condition.children[3]
-    elif t.data == "invrt":
-        template_name = t.children[0].value.capitalize()
-        condition, ls = t.children[1], extract_locations(t.children[2])
+    elif t.data == "invrt1":
+        template_name, condition, ls = t.children[0].value.capitalize(), t.children[1], extract_locations(t.children[2])
         for l in ls:
             while True:
                 is_entering, lk, cond = extract_invrnt_condition(condition)
@@ -281,23 +281,25 @@ def run_instruction(t):
                 if len(condition.children) < 4:
                     break
                 condition = condition.children[3]
-    elif t.data == "general_spec":
+    elif t.data == "invrt2":
         template_name = t.children[0].value.capitalize()
-        path_frml = extract_path_frml(t.children[1])
-        state_frml = extract_state_frml(t.children[2], template_name)
+        ls = extract_locations(t.children[1])
+        cond = ""
+        if t.children[2].data == "more_than":
+        	cond += " <= " + t.children[2].children[0]
+        elif t.children[2].data == "more_than_or_equal_to":
+        	cond += " < " + t.children[2].children[0]
+        for l in ls:
+        	_TAs[template_name].create_clock(guard_info=(), invariant_info=([l], cond), assignment_info=[("", l)])
+    elif t.data == "general_spec":
+        path_frml = extract_path_frml(t.children[0])
+        state_frml = extract_state_frml(t.children[1])
         _queries += path_frml + " " + state_frml + "\n"
-    elif t.data == "inv_deadlock":
-        _queries += "A[] deadlock\n"
     elif t.data == "al_not_deadlock":
         _queries += "A[] not deadlock\n"
-    elif t.data == "pos_deadlock":
-        _queries += "E<> deadlock\n"
-    elif t.data == "pos_not_deadlock":
-        _queries += "E<> not deadlock\n"
     elif t.data == "leads_to":
-        template_name = t.children[0].value.capitalize()
-        state_frml1 = extract_state_frml(t.children[1], template_name)
-        state_frml2 = extract_state_frml(t.children[2], template_name)
+        state_frml1 = extract_state_frml(t.children[0])
+        state_frml2 = extract_state_frml(t.children[1])
         _queries += state_frml1 + " --> " + state_frml2 + "\n"
     elif t.data == "special_spec1":
         template_name = t.children[0].value.capitalize()
