@@ -339,7 +339,7 @@ def init_screen():
     """
     global _output_file_name
     print("#################################################################")
-    print("########## ATAC: Assisted Timed Automata Construction ###########")
+    print("########## ATAC: Automated Timed Automata Construction ##########")
     print("#################################################################")
     print("Enter output file name: ")
     _output_file_name = raw_input()

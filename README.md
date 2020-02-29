@@ -4,6 +4,8 @@
 
 ATAC is implemented as a single-threaded Python program. For efficiency, we used three external Python modules that you also need to install before using ATAC: [NetworkX](https://networkx.github.io/), [Lark](https://lark-parser.readthedocs.io/en/latest/), and [Pyuppaal](https://github.com/bencaldwell/pyuppaal).
 
+We recommend UPPAAL 4.0.13 which is the current official stable release of the academic version.
+
 The usage of ATAC is very simple!
 
 	1. Install necessary Python Modules.
@@ -16,23 +18,67 @@ The usage of ATAC is very simple!
 	7. If you enter any sentence implying a specification, then you also have a query file with ".q" extension in the same directory!
 
 
-ATAC accepts sentences from a formal grammar. Each input sentence has to follow this grammar. Below, we give the grammar.
+ATAC accepts sentences from a formal grammar. Each input description sentence shall follow the description grammar and each input specification sentence shall follow the specification grammar. Below, we give both grammars along with the helper rules.
 
-* __template__ := A TA model name.
-* __location__ := A location name.
-* __synch__ := A signal name.
+Notice that we define followings for names,
+
+* __A__ := A TA model name;
+* __L__ := A location name;
+* __S__ := A signal name;
 * __N__ := A natural number.
-* &phi;<sub>TA</sub> ::= &phi;<sub>init</sub> &phi;<sub>main</sub>
-* &phi;<sub>main</sub> ::= &phi;<sub>sys</sub> &phi;<sub>main</sub> | &phi;<sub>spec</sub> &phi;<sub>main</sub> | &epsilon;
-* &phi;<sub>init</sub> ::= __template__ *can only be* __location__ | __template__ *can be* &phi;<sub>locs</sub> *and it is initially* __location__
-* &phi;<sub>sys</sub> ::= &phi;<sub>tran</sub> | *if* &phi;<sub>cond</sub> *then* &phi;<sub>tran</sub>
-* &phi;<sub>spec</sub> ::= *it goes to* __location__ *in every* __N__ | *the time spent in* __location__ *cannot be more than* __N__ | *the time spent in* __location__ *cannot be more than or equal to* __N__ ∣ __location__ *must be reached from* &phi;<sub>locs</sub> ∣ __location__ *must be reached from* &phi;<sub>spec</sub> *within* __N__
-* &phi;<sub>locs</sub> ::= __location__ | __location__ &phi;<sub>locs</sub>
-* &phi;<sub>tran</sub> ::= *it can go to* &phi;<sub>locs</sub> *from* &phi;<sub>locs</sub> | *it can send* __synch__ *and go to* &phi;<sub>locs</sub> *from* &phi;<sub>locs</sub>
-* &phi;<sub>cond</sub> ::= &phi;<sub>scond</sub> | &phi;<sub>tcond</sub> | &phi;<sub>scond</sub> *and* &phi;<sub>tcond</sub>
-* &phi;<sub>scond</sub> ::= *it receives* __synch__
-* &phi;<sub>tcond</sub> ::= *the time spent after* &phi;<sub>ent_lea</sub> __location__ *is* &phi;<sub>constr</sub> | *the time spent after* &phi;<sub>ent_lea</sub> __location__ *is* &phi;<sub>constr</sub> *and* &phi;<sub>tcond</sub>
-* &phi;<sub>constr</sub> ::= *more than* __N__ | *more than or equal to* __N__ | *less than* __N__ | *less than or equal to* __N__ | *equal to* __N__
-* &phi;<sub>ent_lea</sub> ::= *entering* | *leaving*
 
-The sentences given by the rule &phi;<sub>spec</sub> indicates specifications of the TA model needs to follow. We map these sentences to queries that can be checked by the UPPAAL and give these queries in a query file as an output. The details of the grammar as well as the mapping done by the tool can be found in the tool paper presenting ATAC.
+## Description Grammar
+
+* &phi;<sub>TA</sub> ::= &phi;<sub>init</sub> &phi;<sub>sys</sub>
+* &phi;<sub>init</sub> ::= __A__ *can only be* __L__
+| __A__ *can be* &phi;<sub>locs</sub> *and it is initially* __L__
+* &phi;<sub>invrt</sub>      ::= *for* __A__ &phi;<sub>ic</sub> *in* &phi;<sub>locs</sub>
+| *for* __A__ *the time spent in* &phi;<sub>locs</sub> *cannot be* &phi;<sub>iconstr</sub>
+* &phi;<sub>tran</sub> ::= __A__ *can go from* &phi;<sub>&phi;<sub>locs</sub></sub> *to* &phi;<sub>locs</sub>
+| __A__ *can send* __S__ *and go from* &phi;<sub>locs</sub> *to* &phi;<sub>locs</sub>
+| *if* &phi;<sub>sc</sub> *then* __A__ *can go from* &phi;<sub>locs</sub> *to* &phi;<sub>locs</sub>
+| *if* &phi;<sub>tc</sub> *then* __A__ *can go from* &phi;<sub>locs</sub> *to* &phi;<sub>locs</sub>
+| *if* &phi;<sub>tc</sub> *then* __A__ *can send* __S__ *and go from* &phi;<sub>locs</sub> *to* &phi;<sub>locs</sub>
+| *if* &phi;<sub>sc</sub> *and* &phi;<sub>tc</sub> *then* __A__ *can go from* &phi;<sub>locs</sub> *to* &phi;<sub>locs</sub>
+
+## Specification Grammar
+
+* &phi;<sub>spec</sub>       ::= *it* &phi;<sub>path\_frml</sub> *be the case that* &phi;<sub>state\_frml</sub>
+| *deadlock never occurs*
+| &phi;<sub>state\_frml</sub> *leads to* &phi;<sub>state\_frml</sub>
+| *for* __A__ __L__ *shall hold within every* __N__
+* &phi;<sub>path\_frml</sub>  ::= *shall always*
+| *shall eventually*
+| *might always*
+| *might eventually*
+* &phi;<sub>state\_frml</sub> ::= *for* __A__ &phi;<sub>atom</sub>
+| *for * __A__ &phi;<sub>atom</sub> &phi;<sub>op</sub> &phi;<sub>state\_frml</sub>
+* &phi;<sub>atom</sub>       ::= *the time spent after* &phi;<sub>el</sub> __L__ *is* &phi;<sub>tconstr</sub>
+| &phi;<sub>locs</sub> *holds*
+| &phi;<sub>locs</sub> *does not hold*
+* &phi;<sub>op</sub>         ::= *and*
+| *or*
+| *implies*
+
+## Helper Rules
+
+* &phi;<sub>locs</sub>       ::= __L__
+| __L__ &phi;<sub>locs</sub>
+* &phi;<sub>sc</sub>         ::= __S__ *is received*
+* &phi;<sub>tc</sub>         ::= *the time spent after* &phi;<sub>el</sub> __L__ *is* &phi;<sub>tconstr</sub>
+| *the time spent after* __L__ *is* &phi;<sub>tconstr</sub> *and* &phi;<sub>tc</sub>
+* &phi;<sub>ic</sub>         ::= *the time spent after* &phi;<sub>el</sub> __L__ *cannot be* &phi;<sub>iconstr</sub>
+| *the time spent after* &phi;<sub>el</sub> __L__ *cannot be* &phi;<sub>iconstr</sub> *and* &phi;<sub>ic</sub>
+* &phi;<sub>tconstr</sub>    ::= *more than* __N__
+| *more than or equal to* __N__
+| *less than* __N__
+| *less than or equal to* __N__
+| *equal to* __N__
+* &phi;<sub>iconstr</sub>    ::= *more than* __N__
+| *more than or equal to* __N__
+* &phi;<sub>el</sub>         ::= *entering*
+| *leaving*
+
+
+
+The details of the grammar as well as the mapping done by the tool can be found in the paper presenting ATAC.
