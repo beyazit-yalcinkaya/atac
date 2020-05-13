@@ -25,57 +25,8 @@ Notice that we define followings for names,
 * __S__ := A signal name;
 * __N__ := A natural number.
 
-## Description Grammar
 
-* &phi;<sub>TA</sub> ::= &phi;<sub>init</sub> &phi;<sub>sys</sub>
-* &phi;<sub>init</sub> ::= __A__ *can only be* __L__
-| __A__ *can be* &phi;<sub>locs</sub> *and it is initially* __L__
-* &phi;<sub>invrt</sub>      ::= *for* __A__ &phi;<sub>ic</sub> *in* &phi;<sub>locs</sub>
-| *for* __A__ *the time spent in* &phi;<sub>locs</sub> *cannot be* &phi;<sub>iconstr</sub>
-* &phi;<sub>tran</sub> ::= __A__ *can go from* &phi;<sub>&phi;<sub>locs</sub></sub> *to* &phi;<sub>locs</sub>
-| __A__ *can send* __S__ *and go from* &phi;<sub>locs</sub> *to* &phi;<sub>locs</sub>
-| *if* &phi;<sub>sc</sub> *then* __A__ *can go from* &phi;<sub>locs</sub> *to* &phi;<sub>locs</sub>
-| *if* &phi;<sub>tc</sub> *then* __A__ *can go from* &phi;<sub>locs</sub> *to* &phi;<sub>locs</sub>
-| *if* &phi;<sub>tc</sub> *then* __A__ *can send* __S__ *and go from* &phi;<sub>locs</sub> *to* &phi;<sub>locs</sub>
-| *if* &phi;<sub>sc</sub> *and* &phi;<sub>tc</sub> *then* __A__ *can go from* &phi;<sub>locs</sub> *to* &phi;<sub>locs</sub>
-
-## Specification Grammar
-
-* &phi;<sub>spec</sub>       ::= *it* &phi;<sub>path\_frml</sub> *be the case that* &phi;<sub>state\_frml</sub>
-| *deadlock never occurs*
-| &phi;<sub>state\_frml</sub> *leads to* &phi;<sub>state\_frml</sub>
-| *for* __A__ __L__ *shall hold within every* __N__
-* &phi;<sub>path\_frml</sub>  ::= *shall always*
-| *shall eventually*
-| *might always*
-| *might eventually*
-* &phi;<sub>state\_frml</sub> ::= *for* __A__ &phi;<sub>atom</sub>
-| *for* __A__ &phi;<sub>atom</sub> &phi;<sub>op</sub> &phi;<sub>state\_frml</sub>
-* &phi;<sub>atom</sub>       ::= *the time spent after* &phi;<sub>el</sub> __L__ *is* &phi;<sub>tconstr</sub>
-| &phi;<sub>locs</sub> *holds*
-| &phi;<sub>locs</sub> *does not hold*
-* &phi;<sub>op</sub>         ::= *and*
-| *or*
-| *implies*
-
-## Helper Rules
-
-* &phi;<sub>locs</sub>       ::= __L__
-| __L__ &phi;<sub>locs</sub>
-* &phi;<sub>sc</sub>         ::= __S__ *is received*
-* &phi;<sub>tc</sub>         ::= *the time spent after* &phi;<sub>el</sub> __L__ *is* &phi;<sub>tconstr</sub>
-| *the time spent after* __L__ *is* &phi;<sub>tconstr</sub> *and* &phi;<sub>tc</sub>
-* &phi;<sub>ic</sub>         ::= *the time spent after* &phi;<sub>el</sub> __L__ *cannot be* &phi;<sub>iconstr</sub>
-| *the time spent after* &phi;<sub>el</sub> __L__ *cannot be* &phi;<sub>iconstr</sub> *and* &phi;<sub>ic</sub>
-* &phi;<sub>tconstr</sub>    ::= *more than* __N__
-| *more than or equal to* __N__
-| *less than* __N__
-| *less than or equal to* __N__
-| *equal to* __N__
-* &phi;<sub>iconstr</sub>    ::= *more than* __N__
-| *more than or equal to* __N__
-* &phi;<sub>el</sub>         ::= *entering*
-| *leaving*
+See `grammar_rules.pdf` for rules of the grammar for input.
 
 
 
