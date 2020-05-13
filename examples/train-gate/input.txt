@@ -1,0 +1,19 @@
+Train can be Safe Appr Cross Stop Start and it is initially Safe.
+Train can send Appr and go from Safe to Appr.
+If the time spent after entering Appr is more than or equal to 10, then Train can go from Appr to Cross.
+If Stop is received and the time spent after entering Appr is less than or equal to 10, then Train can go from Appr to Stop.
+If Go is received, then Train can go from Stop to Start.
+If the time spent after entering Start is more than or equal to 7, then Train can go from Start to Cross.
+If the time spent after entering Cross is more than or equal to 3, then Train can send Leave and go from Cross to Safe.
+For Train, the time spent in Appr cannot be more than 20.
+For Train, the time spent in Start cannot be more than 15.
+For Train, the time spent in Cross cannot be more than 5.
+Gate can be Free Occ and it is initially Free.
+Gate can send Go and go from Free to Occ.
+If Appr is received, then Gate can go from Free to Occ.
+If Leave is received, then Gate can go from Occ to Free.
+It might eventually be the case that for Gate, Occ holds.
+For Gate, Free holds leads to for Train, Cross holds.
+It shall always be the case that for Train, Cross does not hold or for Gate, Free does not hold.
+Deadlock never occurs.
+For Gate, Free shall hold within every 40.

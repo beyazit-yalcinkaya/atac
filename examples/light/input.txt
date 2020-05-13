@@ -1,7 +1,0 @@
-Light can be Off Dim Bright and it is initially Off. 
-If it receives press, then it can go to Dim from Off. 
-If it receives press and the time spent after leaving Off is less than 2, then it can go to Bright from Dim. 
-If it receives press and the time spent after leaving Off is more than or equal to 2, then it can go to Off from Dim. 
-If it receives press, then it can go to Off from Bright. 
-Presser can only be Pressing.
-It can send press and go to Pressing from Pressing.

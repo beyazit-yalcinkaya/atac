@@ -16,52 +16,50 @@ _output_file_name = ""
 _queries = ""
 
 Grammar = """
-    start      : init | tran | invrt | spec
-    init       : TEMPLATE_NAME " can only be " LOCATION_NAME                                                        -> single_loc_init
-               | TEMPLATE_NAME " can be " locs " and it is initially " LOCATION_NAME                                -> multi_loc_init
-    tran       : TEMPLATE_NAME " can go from " locs " to " locs                                                     -> simple_tran
-               | TEMPLATE_NAME " can send " SYNCH_NAME " and go from " locs " to " locs                             -> synch_tran
-               | "if " sc " then " TEMPLATE_NAME " can go from " locs " to " locs                                   -> synch_cond_simple_tran
-               | "if " tc " then " TEMPLATE_NAME " can go from " locs " to " locs                                   -> time_cond_simple_tran
-               | "if " tc " then " TEMPLATE_NAME " can send " SYNCH_NAME " and go from " locs " to " locs           -> time_cond_synch_tran
-               | "if " sc " and " tc " then " TEMPLATE_NAME " can go from " locs " to " locs                        -> synch_time_cond_simple_tran
-    invrt      : "for " TEMPLATE_NAME " " ic " in " locs                                                            -> invrt1
-               | "for " TEMPLATE_NAME " the time spent in " locs " cannot be " iconstr                              -> invrt2
-    locs       : LOCATION_NAME
-               | LOCATION_NAME " " locs
-    sc         : SYNCH_NAME " is received"
-    tc         : "the time spent after " el " " LOCATION_NAME " is " tconstr
-               | "the time spent after " el " " LOCATION_NAME " is " tconstr " and " tc
-    ic         : "the time spent after " el " " LOCATION_NAME " cannot be " iconstr
-               | "the time spent after " el " " LOCATION_NAME " cannot be " iconstr " and " ic
-    tconstr    : "more than " NUMBER                                                                                -> more_than
-               | "more than or equal to " NUMBER                                                                    -> more_than_or_equal_to
-               | "less than " NUMBER                                                                                -> less_than
-               | "less than or equal to " NUMBER                                                                    -> less_than_or_equal_to
-               | "equal to " NUMBER                                                                                 -> equal_to
-    iconstr    : "more than " NUMBER                                                                                -> more_than
-               | "more than or equal to " NUMBER                                                                    -> more_than_or_equal_to
-    el         : "entering"                                                                                         -> el_ent
-               | "leaving"                                                                                          -> el_lea
-    spec       : "it " path_frml " be the case that " state_frml                                                    -> general_spec
-               | "deadlock never occurs"                                                                            -> al_not_deadlock
-               | state_frml " leads to " state_frml                                                                 -> leads_to
-               | "for " TEMPLATE_NAME " " LOCATION_NAME " shall hold within every " NUMBER                          -> special_spec1
-    path_frml  : "shall always"                                                                                     -> shall_always
-               | "shall eventually"                                                                                 -> shall_eventually
-               | "might always"                                                                                     -> might_always
-               | "might eventually"                                                                                 -> might_eventually
-    state_frml : "for " TEMPLATE_NAME " " atom
-               | "for " TEMPLATE_NAME " " atom " " op " " state_frml
-    atom       : "the time spent after " el " " LOCATION_NAME " is " tconstr                                        -> time_spec
-               | locs " holds"                                                                                      -> loc_spec
-               | locs " does not hold"                                                                              -> not_loc_spec
-    op         : "and"                                                                                              -> and
-               | "or"                                                                                               -> or
-               | "implies"                                                                                          -> implies
-    %import common.CNAME -> TEMPLATE_NAME
-    %import common.CNAME -> SYNCH_NAME
-    %import common.CNAME -> LOCATION_NAME
+    start        : init | tran | invrt | spec
+    init         : CNAME " can only be " CNAME                                                 -> single_loc_init
+                 | CNAME " can be " locs " and it is initially " CNAME                         -> multi_loc_init
+    tran         : CNAME " can go from " locs " to " locs                                      -> simple_tran
+                 | CNAME " can send " CNAME " and go from " locs " to " locs                   -> synch_tran
+                 | "if " sc " then " CNAME " can go from " locs " to " locs                    -> synch_cond_simple_tran
+                 | "if " tc " then " CNAME " can go from " locs " to " locs                    -> time_cond_simple_tran
+                 | "if " tc " then " CNAME " can send " CNAME " and go from " locs " to " locs -> time_cond_synch_tran
+                 | "if " sc " and " tc " then " CNAME " can go from " locs " to " locs         -> synch_time_cond_simple_tran
+    invrt        : "for " CNAME " " ic " in " locs                                             -> invrt1
+                 | "for " CNAME " the time spent in " locs " cannot be " iconstr               -> invrt2
+    locs         : CNAME
+                 | CNAME " " locs
+    sc           : CNAME " is received"
+    tc           : "the time spent after " el " " CNAME " is " tconstr
+                 | "the time spent after " el " " CNAME " is " tconstr " and " tc
+    ic           : "the time spent after " el " " CNAME " cannot be " iconstr
+                 | "the time spent after " el " " CNAME " cannot be " iconstr " and " ic
+    tconstr      : "more than " NUMBER                                                         -> more_than
+                 | "more than or equal to " NUMBER                                             -> more_than_or_equal_to
+                 | "less than " NUMBER                                                         -> less_than
+                 | "less than or equal to " NUMBER                                             -> less_than_or_equal_to
+                 | "equal to " NUMBER                                                          -> equal_to
+    iconstr      : "more than " NUMBER                                                         -> more_than
+                 | "more than or equal to " NUMBER                                             -> more_than_or_equal_to
+    el           : "entering"                                                                  -> el_ent
+                 | "leaving"                                                                   -> el_lea
+    spec         : "it " path_frml " be the case that " state_frml                             -> general_spec
+                 | "deadlock never occurs"                                                     -> al_not_deadlock
+                 | state_frml " leads to " state_frml                                          -> leads_to
+                 | "for " CNAME " " CNAME " shall hold within every " NUMBER                   -> special_spec1
+    path_frml    : "shall always"                                                              -> shall_always
+                 | "shall eventually"                                                          -> shall_eventually
+                 | "might always"                                                              -> might_always
+                 | "might eventually"                                                          -> might_eventually
+    state_frml.1 : "for " CNAME " " atom
+                 | "for " CNAME " " atom " " op " " state_frml
+    atom.2       : "the time spent after " el " " CNAME " is " tconstr                         -> time_spec
+                 | locs " does not hold"                                                       -> not_loc_spec
+                 | locs " holds"                                                               -> loc_spec
+    op           : "and"                                                                       -> and
+                 | "or"                                                                        -> or
+                 | "implies"                                                                   -> implies
+    %import common.CNAME
     %import common.NUMBER
 """
 
@@ -169,9 +167,9 @@ def extract_state_frml(t):
     Returns:
         state formula
     """
-    template_name = t.children[0].value.capitalize()
     query = ""
     while True:
+        template_name = t.children[0].value.capitalize()
         if t.children[1].data == "time_spec":
             is_entering, lk, cond = extract_time_condition(t.children[1])
             c = _TAs[template_name].create_clock(guard_info=(), invariant_info=(), assignment_info=[("", lk)] if is_entering else [(lk, "")], is_spec_clock=True)
@@ -286,11 +284,11 @@ def run_instruction(t):
         ls = extract_locations(t.children[1])
         cond = ""
         if t.children[2].data == "more_than":
-        	cond += " <= " + t.children[2].children[0]
+            cond += " <= " + t.children[2].children[0]
         elif t.children[2].data == "more_than_or_equal_to":
-        	cond += " < " + t.children[2].children[0]
+            cond += " < " + t.children[2].children[0]
         for l in ls:
-        	_TAs[template_name].create_clock(guard_info=(), invariant_info=([l], cond), assignment_info=[("", l)])
+            _TAs[template_name].create_clock(guard_info=(), invariant_info=([l], cond), assignment_info=[("", l)])
     elif t.data == "general_spec":
         path_frml = extract_path_frml(t.children[0])
         state_frml = extract_state_frml(t.children[1])
@@ -331,19 +329,19 @@ def get_lines():
         try:
             run_line(line)
         except Exception as e:
-            print(e)
+            print e
 
 def init_screen():
     """
     Initializes stdout for the file name and user input.
     """
     global _output_file_name
-    print("#################################################################")
-    print("########## ATAC: Automated Timed Automata Construction ##########")
-    print("#################################################################")
-    print("Enter output file name: ")
+    print "#################################################################"
+    print "########## ATAC: Automated Timed Automata Construction ##########"
+    print "#################################################################"
+    print "Enter output file name: "
     _output_file_name = raw_input()
-    print("Below, you can start entering descriptions and specifications:")
+    print "Below, you can start entering descriptions and specifications:"
 
 init_screen()
 get_lines()

@@ -4,13 +4,11 @@
 
 ATAC is implemented as a single-threaded Python program. For efficiency, we used three external Python modules that you also need to install before using ATAC: [NetworkX](https://networkx.github.io/), [Lark](https://lark-parser.readthedocs.io/en/latest/), and [Pyuppaal](https://github.com/bencaldwell/pyuppaal).
 
-We recommend UPPAAL 4.0.13 which is the current official stable release of the academic version.
-
 The usage of ATAC is very simple!
 
 	1. Install necessary Python Modules.
 	2. Download ATAC.
-	3. Go to the terminal and type "python atac.py".
+	3. Go to the terminal and type "python2 atac.py".
 	4. Enter the output file name.
 	4. Describe the TA model in your head following the input language rules of the tool. Notice that you need to enter one sentence in each line, that is press enter after each sentence.
 	5. Press enter after the last sentece.

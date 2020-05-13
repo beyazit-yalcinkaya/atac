@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC "-//Uppaal Team//DTD Flat System 1.1//EN" "http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd">
+<nta>
+  <declaration>chan up;
+chan down;
+chan i;
+chan shutdown;
+</declaration>
+    <template>
+    <name x="5" y="5">Int</name>
+    
+    <declaration></declaration>
+    
+    <location id="id0" x="-40" y="-381">
+      <name x="-40" y="-366">L1</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id1" x="-40" y="-204">
+      <name x="-40" y="-189">L2</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id2" x="-40" y="-27">
+      <name x="-40" y="-12">L3</name>
+      
+      
+      
+      
+    </location>
+    
+    <init ref="id0" />
+    
+    <transition>
+      <source ref="id0" />
+      <target ref="id1" />
+      
+      
+      <label kind="synchronisation" x="-85" y="-262">shutdown?</label>
+      
+      
+    </transition>
+
+    <transition>
+      <source ref="id1" />
+      <target ref="id2" />
+      
+      
+      <label kind="synchronisation" x="-46" y="-85">i!</label>
+      
+      
+    </transition>
+  </template>
+  <template>
+    <name x="5" y="5">C</name>
+    
+    <declaration></declaration>
+    
+    <location id="id0" x="-40" y="-211">
+      <name x="-40" y="-196">L1</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id1" x="-40" y="-27">
+      <name x="-40" y="-12">L2</name>
+      
+      
+      
+      
+    </location>
+    
+    <init ref="id0" />
+    
+    <transition>
+      <source ref="id0" />
+      <target ref="id0" />
+      
+      
+      <label kind="synchronisation" x="-135" y="-181">up?</label>
+      
+      
+    </transition>
+
+    <transition>
+      <source ref="id0" />
+      <target ref="id0" />
+      
+      
+      <label kind="synchronisation" x="-135" y="-181">down?</label>
+      
+      
+    </transition>
+
+    <transition>
+      <source ref="id0" />
+      <target ref="id1" />
+      
+      
+      <label kind="synchronisation" x="-48" y="-85">i?</label>
+      
+      
+    </transition>
+  </template>
+  <template>
+    <name x="5" y="5">Env</name>
+    
+    <declaration></declaration>
+    
+    <location id="id0" x="-40" y="-388">
+      <name x="-40" y="-373">On</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id1" x="-40" y="-204">
+      <name x="-40" y="-189">Off</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id2" x="-40" y="-27">
+      <name x="-40" y="-12">Error</name>
+      
+      
+      
+      
+    </location>
+    
+    <init ref="id0" />
+    
+    <transition>
+      <source ref="id0" />
+      <target ref="id0" />
+      
+      
+      <label kind="synchronisation" x="-134" y="-358">up!</label>
+      
+      
+    </transition>
+
+    <transition>
+      <source ref="id0" />
+      <target ref="id0" />
+      
+      
+      <label kind="synchronisation" x="-134" y="-358">down!</label>
+      
+      
+    </transition>
+
+    <transition>
+      <source ref="id0" />
+      <target ref="id1" />
+      
+      
+      <label kind="synchronisation" x="-84" y="-262">shutdown!</label>
+      
+      
+    </transition>
+
+    <transition>
+      <source ref="id1" />
+      <target ref="id2" />
+      
+      
+      <label kind="synchronisation" x="-67" y="-85">up!</label>
+      
+      
+    </transition>
+
+    <transition>
+      <source ref="id1" />
+      <target ref="id2" />
+      
+      
+      <label kind="synchronisation" x="-67" y="-85">down!</label>
+      
+      
+    </transition>
+  </template>
+
+  <system>system Int, C, Env;
+</system>
+</nta>

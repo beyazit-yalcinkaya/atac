@@ -56,7 +56,7 @@ class NTA:
         for t in self.templates:
             templatesxml += t.to_xml() + "\n"
         return """<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE nta PUBLIC "-//Uppaal Team//DTD Flat System 1.1//EN" "http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd">
+<!DOCTYPE nta PUBLIC "-//Uppaal Team//DTD Flat System 1.1//EN" "http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd">
 <nta>
   <declaration>%s</declaration>
   %s

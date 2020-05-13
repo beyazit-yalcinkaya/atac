@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE nta PUBLIC "-//Uppaal Team//DTD Flat System 1.1//EN" "http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd">
+<!DOCTYPE nta PUBLIC "-//Uppaal Team//DTD Flat System 1.1//EN" "http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd">
 <nta>
   <declaration>chan press;
 clock x_3;
@@ -9,16 +9,16 @@ clock x_3;
     
     <declaration></declaration>
     
-    <location id="id0" x="-87" y="-397">
-      <name x="-87" y="-382">Off</name>
+    <location id="id0" x="-87" y="-390">
+      <name x="-87" y="-375">Off</name>
       
       
       
       
     </location>
 
-    <location id="id1" x="-40" y="-212">
-      <name x="-40" y="-197">Dim</name>
+    <location id="id1" x="-40" y="-208">
+      <name x="-40" y="-193">Dim</name>
       
       
       
@@ -40,8 +40,8 @@ clock x_3;
       <target ref="id1" />
       
       
-      <label kind="synchronisation" x="-77" y="-279">press?</label>
-      <label kind="assignment" x="-77" y="-264">x_3 := 0</label>
+      <label kind="synchronisation" x="-78" y="-273">press?</label>
+      <label kind="assignment" x="-78" y="-258">x_3 = 0</label>
       
     </transition>
 
@@ -49,8 +49,8 @@ clock x_3;
       <source ref="id1" />
       <target ref="id2" />
       
-      <label kind="guard" x="-83" y="-100">x_3 &lt; 2</label>
-      <label kind="synchronisation" x="-83" y="-85">press?</label>
+      <label kind="guard" x="-84" y="-99">x_3 &lt; 2</label>
+      <label kind="synchronisation" x="-84" y="-84">press?</label>
       
       
     </transition>
@@ -59,8 +59,8 @@ clock x_3;
       <source ref="id1" />
       <target ref="id0" />
       
-      <label kind="guard" x="-77" y="-294">x_3 &gt;= 2</label>
-      <label kind="synchronisation" x="-77" y="-279">press?</label>
+      <label kind="guard" x="-78" y="-288">x_3 &gt;= 2</label>
+      <label kind="synchronisation" x="-78" y="-273">press?</label>
       
       
     </transition>
@@ -70,7 +70,7 @@ clock x_3;
       <target ref="id0" />
       
       
-      <label kind="synchronisation" x="-161" y="-182">press?</label>
+      <label kind="synchronisation" x="-161" y="-178">press?</label>
       
       
     </transition>
@@ -80,8 +80,8 @@ clock x_3;
     
     <declaration></declaration>
     
-    <location id="id0" x="-40" y="-35">
-      <name x="-40" y="-20">Pressing</name>
+    <location id="id0" x="-40" y="-34">
+      <name x="-40" y="-19">Pressing</name>
       
       
       
@@ -95,7 +95,7 @@ clock x_3;
       <target ref="id0" />
       
       
-      <label kind="synchronisation" x="-133" y="-5">press!</label>
+      <label kind="synchronisation" x="-133" y="-4">press!</label>
       
       
     </transition>

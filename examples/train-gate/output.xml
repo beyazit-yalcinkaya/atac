@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC "-//Uppaal Team//DTD Flat System 1.1//EN" "http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd">
+<nta>
+  <declaration>chan appr;
+chan stop;
+chan go;
+chan leave;
+clock x_0;
+clock x_10;
+</declaration>
+    <template>
+    <name x="5" y="5">Gate</name>
+    
+    <declaration></declaration>
+    
+    <location id="id0" x="-40" y="-204">
+      <name x="-40" y="-189">Free</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id1" x="-40" y="-27">
+      <name x="-40" y="-12">Occ</name>
+      
+      
+      
+      
+    </location>
+    
+    <init ref="id0" />
+    
+    <transition>
+      <source ref="id0" />
+      <target ref="id1" />
+      
+      
+      <label kind="synchronisation" x="-67" y="-85">go!</label>
+      <label kind="assignment" x="-67" y="-70">x_0 = 0</label>
+      
+    </transition>
+
+    <transition>
+      <source ref="id0" />
+      <target ref="id1" />
+      
+      
+      <label kind="synchronisation" x="-67" y="-85">appr?</label>
+      <label kind="assignment" x="-67" y="-70">x_0 = 0</label>
+      
+    </transition>
+
+    <transition>
+      <source ref="id1" />
+      <target ref="id0" />
+      
+      
+      <label kind="synchronisation" x="-67" y="-85">leave?</label>
+      
+      
+    </transition>
+  </template>
+  <template>
+    <name x="5" y="5">Train</name>
+    
+    <declaration></declaration>
+    
+    <location id="id0" x="-169" y="-807">
+      <name x="-169" y="-792">Safe</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id1" x="-109" y="-609">
+      <name x="-109" y="-594">Appr</name>
+      <label kind="invariant" x="-109" y="-579">x_10 &lt;= 20</label>
+      
+      
+      
+    </location>
+
+    <location id="id2" x="-111" y="-27">
+      <name x="-111" y="-12">Cross</name>
+      <label kind="invariant" x="-111" y="3">x_10 &lt;= 5</label>
+      
+      
+      
+    </location>
+
+    <location id="id3" x="-114" y="-429">
+      <name x="-114" y="-414">Stop</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id4" x="-111" y="-225">
+      <name x="-111" y="-210">Start</name>
+      <label kind="invariant" x="-111" y="-195">x_10 &lt;= 15</label>
+      
+      
+      
+    </location>
+    
+    <init ref="id0" />
+    
+    <transition>
+      <source ref="id0" />
+      <target ref="id1" />
+      
+      
+      <label kind="synchronisation" x="-172" y="-678">appr!</label>
+      <label kind="assignment" x="-172" y="-663">x_10 = 0</label>
+      
+    </transition>
+
+    <transition>
+      <source ref="id1" />
+      <target ref="id2" />
+      
+      <label kind="guard" x="-59" y="-309">x_10 &gt;= 10</label>
+      
+      <label kind="assignment" x="-59" y="-279">x_10 = 0</label>
+      
+    </transition>
+
+    <transition>
+      <source ref="id1" />
+      <target ref="id3" />
+      
+      <label kind="guard" x="-161" y="-507">x_10 &lt;= 10</label>
+      <label kind="synchronisation" x="-161" y="-492">stop?</label>
+      
+      
+    </transition>
+
+    <transition>
+      <source ref="id3" />
+      <target ref="id4" />
+      
+      
+      <label kind="synchronisation" x="-151" y="-294">go?</label>
+      <label kind="assignment" x="-151" y="-279">x_10 = 0</label>
+      
+    </transition>
+
+    <transition>
+      <source ref="id4" />
+      <target ref="id2" />
+      
+      <label kind="guard" x="-154" y="-111">x_10 &gt;= 7</label>
+      
+      <label kind="assignment" x="-154" y="-81">x_10 = 0</label>
+      
+    </transition>
+
+    <transition>
+      <source ref="id2" />
+      <target ref="id0" />
+      
+      <label kind="guard" x="-273" y="-414">x_10 &gt;= 3</label>
+      <label kind="synchronisation" x="-273" y="-399">leave!</label>
+      
+      
+    </transition>
+  </template>
+
+  <system>system Gate, Train;
+</system>
+</nta>

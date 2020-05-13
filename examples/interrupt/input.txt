@@ -1,0 +1,14 @@
+C can be L1 L2 and it is initially L1.
+If up is received, then C can go from L1 to L1.
+If down is received, then C can go from L1 to L1.
+If i is received, then C can go from L1 to L2.
+INT can be L1 L2 L3 and it is initially L1.
+If shut_down is received, then INT can go from L1 to L2.
+INT can send i and go from L2 to L3.
+Env can be ON OFF ERROR and it is initially ON.
+Env can send up and go from ON to ON.
+Env can send down and go from ON to ON.
+Env can send shut_down and go from ON to OFF.
+Env can send up and go from OFF to ERROR.
+Env can send down and go from OFF to ERROR.
+It shall always be the case that for Env, ERROR does not hold.

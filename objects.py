@@ -222,11 +222,11 @@ class Template(object):
         to comlete the TA tempalate.
 
         Ret:
-        	clock_mapping: Final clock mapping after clock reduction.
+            clock_mapping: Final clock mapping after clock reduction.
         """
         clock_mapping = {}
         for c in self.clocks:
-        	clock_mapping[c.name] = [c.name]
+            clock_mapping[c.name] = [c.name]
         self.finalize_transitions()
         spec_clocks = filter(lambda x: x.is_spec_clock, self.clocks)
         not_spec_clocks = filter(lambda x: not x.is_spec_clock, self.clocks)
@@ -245,7 +245,7 @@ class Template(object):
                 interface.add_assignment(self.name, t[2], c.name)
         interface.add_current_template_to_nta(self.name)
         for c in clock_mapping.keys():
-        	clock_mapping[c] = list(set(clock_mapping[c]))
+            clock_mapping[c] = list(set(clock_mapping[c]))
         return clock_mapping
 
     def create_committed_location(self):
@@ -278,7 +278,7 @@ class Template(object):
         Reduces number of clocks according to the reduction algorithm.
 
         Args:
-        	clock_mapping: Mappings of the clocks for reduction.
+            clock_mapping: Mappings of the clocks for reduction.
         """
         self.split(clock_mapping)
         dependency_graph = self.generate_dependency_graph()
@@ -333,7 +333,7 @@ class Template(object):
         Splits clocks of the TA template.
 
         Args:
-        	clock_mapping: Mappings of the clocks for reduction.
+            clock_mapping: Mappings of the clocks for reduction.
         """
         new_clock_list = []
         for c in self.clocks:
@@ -466,12 +466,12 @@ class Template(object):
         temp = []
         partition_names = map(lambda x: x.name, partition)
         for c in clock_mapping.keys():
-    		for c_s in clock_mapping[c]:
-    			if (c_s in partition_names) and (new_clock.name not in clock_mapping[c]):
-    				temp.append(new_clock.name)
-    			else:
-    				temp.append(c_s)
-    		clock_mapping[c] = temp
+            for c_s in clock_mapping[c]:
+                if (c_s in partition_names) and (new_clock.name not in clock_mapping[c]):
+                    temp.append(new_clock.name)
+                else:
+                    temp.append(c_s)
+            clock_mapping[c] = temp
 
     def print_clocks(self):
         """
