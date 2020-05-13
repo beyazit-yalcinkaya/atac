@@ -50,7 +50,7 @@ Notice that we define followings for names,
 | *might always*
 | *might eventually*
 * &phi;<sub>state\_frml</sub> ::= *for* __A__ &phi;<sub>atom</sub>
-| *for * __A__ &phi;<sub>atom</sub> &phi;<sub>op</sub> &phi;<sub>state\_frml</sub>
+| *for* __A__ &phi;<sub>atom</sub> &phi;<sub>op</sub> &phi;<sub>state\_frml</sub>
 * &phi;<sub>atom</sub>       ::= *the time spent after* &phi;<sub>el</sub> __L__ *is* &phi;<sub>tconstr</sub>
 | &phi;<sub>locs</sub> *holds*
 | &phi;<sub>locs</sub> *does not hold*
