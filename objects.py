@@ -152,7 +152,8 @@ class Template(object):
             for t in transitions:
                 if transition[0] == t[0] and transition[1] == t[1]:
                     result.append(t)
-                elif transition[0] == t[0] and "C" in t[1]:
+                #elif transition[0] == t[0] and "Committed" in t[1]:
+                elif transition[0] == t[0]:
                     for tt in transitions:
                         if t[1] == tt[0] and transition[1] == tt[1]:
                             result.append(t)
@@ -160,10 +161,12 @@ class Template(object):
             result = filter(lambda x: x[0] == transition[0], transitions)
         elif transition[1]:
             for t in transitions:
-                if "C" not in t[0] and transition[1] == t[1]:
+                #if "Committed" not in t[0] and transition[1] == t[1]:
+                if transition[1] == t[1]:
                     result.append(t)
         else:
-            result = filter(lambda x: "C" not in x[0], transitions)
+            #result = filter(lambda x: "Committed" not in x[0], transitions)
+            result = transitions
         return result
 
     def create_clock(self, guard_info=(), invariant_info=(), assignment_info=[], is_spec_clock=False):
@@ -256,7 +259,7 @@ class Template(object):
             committed_location_name: Name of the creates committed location.
 
         """
-        committed_location_name = "C" + str(self.committed_location_count)
+        committed_location_name = "Committed" + str(self.committed_location_count)
         interface.create_committed_location(self.name, committed_location_name)
         self.committed_location_count += 1
         self.locations.append(committed_location_name)
